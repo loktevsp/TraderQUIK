@@ -76,6 +76,11 @@ var heightCanvas = 210;
 
 var canvas = document.getElementById("canvas"),
 ctx = canvas.getContext('2d');
+ctx.fillStyle = "#FFF";
+ctx.textBaseline = 'top';
+ctx.font = "12px Arial";
+ctx.lineWidth = 1;      
+ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
 
 function drawLine(_data, _camera)
 {
