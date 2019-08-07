@@ -25,7 +25,12 @@ $("#isHammer").on("click", function(e){
   $("#hammer").removeClass("hidden");
   $("#terminal").addClass("hidden");
 });
-
+$(".chart").mousemove(function(e){
+    var pos = $(this).offset();
+    mouse.x = e.pageX - pos.left; // положения по оси X
+    mouse.y = e.pageY - pos.top; // положения по оси Y
+    //console.log("X: " + mouse.x + " Y: " + mouse.y); // вывод результата в консоль
+});
 Position = function(_x, _y)
 {
     return {
@@ -38,18 +43,20 @@ Position = function(_x, _y)
       }
     }
 }
-Line = function(_pos = Position(0, 0),_to = Position(0, 0),_size = 1,_color = "#fff")
+Line = function(_pos = Position(0, 0),_to = Position(0, 0),_size = 1,_color = "#fff", _label = "")
 {
     this.pos = _pos;
     this.to = _to;
     this.size = _size;
     this.color = _color;
+    this.label = _label;
 }
 Line.prototype =
 {
     constructor: Line,
-    Set: function(_pos,_to,_size,_color,_type)
+    Set: function(_pos,_to,_size,_color,_type,_label)
     {
+        this.label = _label || this.label;
         this.type = _type || this.type;
         this.color = _color || this.color;
         this.size = _size || this.size;
@@ -67,6 +74,7 @@ Candle.prototype =
     constructor: Candle
 }
 
+var mouse = Position(0 , 0);
 var candles = [];
 var lines = [];
 var camera = Position(0, 0);
@@ -82,40 +90,67 @@ ctx.font = "12px Arial";
 ctx.lineWidth = 1;      
 ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
 
-function drawLine(_data, _camera)
+function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _dash = 0)
 {
   var _p = _data.pos;
   var _t = _data.to;
   var _s = _data.size;
   var _c = _data.color;
   var _type = _data.type;
-  var _z = zoom;
+  var _label = _data.label;
+  var _z = _scale;
   _z = !_z?1:_z;
 
   var x1,x2,y1,y2,scale;
 
-  scale = 1+_z/100;
-  x1 = _p.x-_camera.x;
-  x2 = _t.x-_camera.x;
-  y1 = _p.y-_camera.y-heightCanvas/2;
-  y2 = _t.y-_camera.y-heightCanvas/2;
+  scale = _z*10;//1+_z/100;
+  x1 = _p.x-_camera.x-_offest.x;
+  x2 = _t.x-_camera.x-_offest.x;
+  y1 = _p.y-_camera.y-_offest.y;
+  y2 = _t.y-_camera.y-_offest.y;
 
-  
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.lineWidth = _s;
-  ctx.strokeStyle = _c;
-  ctx.stroke();
-  ctx.setTransform(1,0,0,scale,0, heightCanvas/2);
-  
-  ctx.closePath();
+  if(_label != "")
+  {
+    ctx.beginPath();
+    ctx.setTransform(1,0,0,1,0,_offest.y-10);
+    ctx.fillStyle = "#FFF";
+    ctx.textBaseline = 'top';
+    ctx.font = "8px Arial";
+    ctx.lineWidth = 1;      
+    ctx.fillText(_label, x1, (y1*-scale)); 
+    ctx.closePath();
+  }
+  if(_dash)
+  {
+    ctx.beginPath();
+    ctx.setTransform(1,0,0,1,0,_offest.y);
+    ctx.setLineDash([5, _dash]);
+    ctx.moveTo(x1, (y1*-scale));
+    ctx.lineTo(x2, (y2*-scale));
+    ctx.lineWidth = _s;
+    ctx.strokeStyle = _c;
+    ctx.stroke();
+    ctx.closePath();
+  }
+  else
+  {
+    ctx.beginPath();
+    ctx.setTransform(1,0,0,-scale,0,_offest.y);
+    ctx.setLineDash([0, 0]);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineWidth = _s;
+    ctx.strokeStyle = _c;
+    ctx.stroke();
+    ctx.closePath();
+  }
 }
 
-function render(_data, _camera)
+function render(_data, _camera, _data1 = 0)
 {
+  ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0, 0, widthCnavas, heightCanvas);
-
+  //ctx.setTransform(1,0,0,1,0,0);
   // ctx.beginPath();
   // ctx.fillStyle("#21262d00");
   // ctx.rect(0, 0, widthCnavas, heightCanvas);
@@ -124,36 +159,41 @@ function render(_data, _camera)
 
   for(var i = 0; i < _data.length; i++)
   {
-    drawLine(_data[i].high_low, _camera);
-    drawLine(_data[i].open_close, _camera);
+    drawLine(_data[i].high_low, _camera, Position(0, heightCanvas/2), zoom);
+    drawLine(_data[i].open_close, _camera, Position(0, heightCanvas/2), zoom);
   }
 
-   var z = 1 + (zoom) / 100;
-   ctx.setTransform(1,0,0,z,0,0);
+  if(_data1)
+    for(var i = 0; i < _data1.length; i++)
+      drawLine(_data1[i], Position(0, _camera.y), Position(0, heightCanvas/2), zoom, 5);
+
+
+   // var z = 1 + (zoom) / 100;
+   // ctx.setTransform(1,0,0,z,0,0);
    //ctx.scale(1,-1);
-    var Image = ctx.getImageData(0, 0, widthCnavas, heightCanvas);
+    // var Image = ctx.getImageData(0, 0, widthCnavas, heightCanvas);
 
-    var Data = Image.data;
-    var Data1 = ctx.createImageData(widthCnavas, heightCanvas); 
+    // var Data = Image.data;
+    // var Data1 = ctx.createImageData(widthCnavas, heightCanvas); 
 
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0, 0, widthCnavas, heightCanvas);
+    // ctx.setTransform(1,0,0,1,0,0);
+    // ctx.clearRect(0, 0, widthCnavas, heightCanvas);
     
-    for(var y = 0; y < heightCanvas; y++) {
-      for(var x = 0; x < widthCnavas; x++) {
-          var pos = ((widthCnavas * y) + x);
-          var r = Data[pos * 4];
-          var g = Data[pos * 4 + 1];
-          var b = Data[pos * 4 + 2];
-          var a = Data[pos * 4 + 3];
-          var pos1 = ((widthCnavas * (heightCanvas-y)) + x);
-          Data1.data[pos1 * 4] = r;
-          Data1.data[pos1 * 4 + 1] = g;
-          Data1.data[pos1 * 4 + 2] = b;
-          Data1.data[pos1 * 4 + 3] = a;
-      }
-    }                                                 
-    ctx.putImageData(Data1, 0, 0);
+    // for(var y = 0; y < heightCanvas; y++) {
+    //   for(var x = 0; x < widthCnavas; x++) {
+    //       var pos = ((widthCnavas * y) + x);
+    //       var r = Data[pos * 4];
+    //       var g = Data[pos * 4 + 1];
+    //       var b = Data[pos * 4 + 2];
+    //       var a = Data[pos * 4 + 3];
+    //       var pos1 = ((widthCnavas * (heightCanvas-y)) + x);
+    //       Data1.data[pos1 * 4] = r;
+    //       Data1.data[pos1 * 4 + 1] = g;
+    //       Data1.data[pos1 * 4 + 2] = b;
+    //       Data1.data[pos1 * 4 + 3] = a;
+    //   }
+    // }                                                 
+    // ctx.putImageData(Data1, 0, 0);
 }
 
 var ColorSale = "#fa1039";
@@ -161,8 +201,8 @@ var ColorBuy = "#00b48e";
 
 var oldDate = "";
 var currentPrice = 0;
-var zoom = 13;
-var between = 13;
+var zoom = 12;
+var between = 12;
 var noloadgraph = true;
 var step = 0;
 var size = 0;
@@ -177,6 +217,10 @@ chrome.runtime.onConnect.addListener(function(port) {
     Message(msg);
   });
 });
+
+function IntToFloat(_i, _n) {
+  return parseFloat(String(_i).slice(0, String(_i).length-_n)+"."+String(_i).slice(String(_i).length-_n, String(_i).length));
+}
 
 var updatePrices = function(){
   var _p = parseFloat(currentPrice + (8 * (between) * 0.01)).toFixed(2);
@@ -193,7 +237,7 @@ $('.prices').bind('mousewheel', function(e){
     if(e.originalEvent.wheelDelta /120 > 0) {
       if(between > 1)
       {
-        zoom+=13*13;
+        zoom+=12;
         between-=1;
         updatePrices();
       }
@@ -201,7 +245,7 @@ $('.prices').bind('mousewheel', function(e){
     else{
       if(between < 1000)
       {
-        zoom-=13*13;
+        zoom-=12;
         between+=1;
         updatePrices();
       }
@@ -246,6 +290,19 @@ $('.chart').bind('mousewheel', function(e){
         }
     }
 });  
+
+$('.chart').on("click", function(e){
+  var z = zoom;
+  z = !z?1:z;
+  var scale = 1+z;
+  var pos = heightCanvas - mouse.y;
+  var price = (currentPrice + (8 * (12) * 0.01));
+  //price *= scale;
+  var line = new Line(Position(0, price), Position(widthCnavas, price), 1, "#FFF", String(IntToFloat(price,2)));
+  lines.push(line);
+  console.log(price);
+  console.log(IntToFloat(price,2));
+});
 
 
 function getScale(s)
@@ -327,10 +384,10 @@ function Message(data)
                     noloadgraph = false;
                     oldDate = data.price.date;
 
-                    var o = data.price.open;
-                    var c = data.price.close;
-                    var h = data.price.high;
-                    var l = data.price.low;
+                    var o = IntToFloat(data.price.open, 2);
+                    var c = IntToFloat(data.price.close, 2);
+                    var h = IntToFloat(data.price.high, 2);
+                    var l = IntToFloat(data.price.low, 2);
  
                     var color = o>c?ColorSale:ColorBuy;
                     step+=10;
@@ -344,10 +401,11 @@ function Message(data)
                   }
                   else {
                     
-                    var o = data.price.open;
-                    var c = data.price.close;
-                    var h = data.price.high;
-                    var l = data.price.low;
+                    var o = IntToFloat(data.price.open, 2);
+                    var c = IntToFloat(data.price.close, 2);
+                    var h = IntToFloat(data.price.high, 2);
+                    var l = IntToFloat(data.price.low, 2);
+
                     var color = o>c?ColorSale:ColorBuy;
 
                     if(oldDate != data.price.date)
@@ -371,7 +429,7 @@ function Message(data)
                     
                   }
 
-                  if(candles.length >= size && size) render(candles, camera);
+                  if(candles.length >= size && size) render(candles, camera, lines);
                   
                 }
                 break;
@@ -411,7 +469,7 @@ $("#pin").on("keypress", function(e){
   }
 });
 
-setInterval(function(){camera.Set(cameraX, cameraY); if(candles.length >= size && size) render(candles, camera); console.log(zoom)},60);
+setInterval(function(){camera.Set(cameraX, cameraY); if(candles.length >= size && size) render(candles, camera, lines); console.log(zoom)},60);
 // function Render()
 // {       
 //   LayerGame.Fill('rgb(40,40,40)');
