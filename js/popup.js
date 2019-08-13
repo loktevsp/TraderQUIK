@@ -150,50 +150,16 @@ function render(_data, _camera, _data1 = 0)
 {
   ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0, 0, widthCnavas, heightCanvas);
-  //ctx.setTransform(1,0,0,1,0,0);
-  // ctx.beginPath();
-  // ctx.fillStyle("#21262d00");
-  // ctx.rect(0, 0, widthCnavas, heightCanvas);
-  // ctx.fill();
-  // ctx.closePath();
 
   for(var i = 0; i < _data.length; i++)
   {
-    drawLine(_data[i].high_low, _camera, Position(0, heightCanvas/2), zoom);
-    drawLine(_data[i].open_close, _camera, Position(0, heightCanvas/2), zoom);
+    drawLine(_data[i].high_low, _camera, Position(0, (heightCanvas)/2), zoom);
+    drawLine(_data[i].open_close, _camera, Position(0, (heightCanvas)/2), zoom);
   }
 
   if(_data1)
     for(var i = 0; i < _data1.length; i++)
-      drawLine(_data1[i], Position(0, _camera.y), Position(0, heightCanvas/2), zoom, 5);
-
-
-   // var z = 1 + (zoom) / 100;
-   // ctx.setTransform(1,0,0,z,0,0);
-   //ctx.scale(1,-1);
-    // var Image = ctx.getImageData(0, 0, widthCnavas, heightCanvas);
-
-    // var Data = Image.data;
-    // var Data1 = ctx.createImageData(widthCnavas, heightCanvas); 
-
-    // ctx.setTransform(1,0,0,1,0,0);
-    // ctx.clearRect(0, 0, widthCnavas, heightCanvas);
-    
-    // for(var y = 0; y < heightCanvas; y++) {
-    //   for(var x = 0; x < widthCnavas; x++) {
-    //       var pos = ((widthCnavas * y) + x);
-    //       var r = Data[pos * 4];
-    //       var g = Data[pos * 4 + 1];
-    //       var b = Data[pos * 4 + 2];
-    //       var a = Data[pos * 4 + 3];
-    //       var pos1 = ((widthCnavas * (heightCanvas-y)) + x);
-    //       Data1.data[pos1 * 4] = r;
-    //       Data1.data[pos1 * 4 + 1] = g;
-    //       Data1.data[pos1 * 4 + 2] = b;
-    //       Data1.data[pos1 * 4 + 3] = a;
-    //   }
-    // }                                                 
-    // ctx.putImageData(Data1, 0, 0);
+      drawLine(_data1[i], Position(0, _camera.y), Position(0, (heightCanvas)/2), zoom, 5);
 }
 
 var ColorSale = "#fa1039";
@@ -203,6 +169,7 @@ var oldDate = "";
 var currentPrice = 0;
 var zoom = 12;
 var between = 12;
+var fixed = 2;
 var noloadgraph = true;
 var step = 0;
 var size = 0;
@@ -223,11 +190,10 @@ function IntToFloat(_i, _n) {
 }
 
 var updatePrices = function(){
-  var _p = parseFloat(currentPrice + (8 * (between) * 0.01)).toFixed(2);
   for(var i = 0; i < $(".prices span").length; i++)
   {
-    var price = parseFloat(_p - (i * (between) * 0.01));
-    $(".prices span").eq(i).html(String(price.toFixed(2)));
+    var pos = $(".prices span").eq(i).position().top;         
+    $(".prices span").eq(i).html(String(calcPos(pos).toFixed(2)));
   }
   $("#price").html(String(currentPrice));
 }
@@ -239,14 +205,18 @@ $('.prices').bind('mousewheel', function(e){
       {
         zoom+=12;
         between-=1;
+        if(between < 6)
+          fixed = 3;
         updatePrices();
       }
     }
     else{
-      if(between < 1000)
+      if(between < 1000 && zoom > 12)
       {
         zoom-=12;
         between+=1;
+        if(between > 6)
+          fixed = 2;
         updatePrices();
       }
     }
@@ -291,17 +261,25 @@ $('.chart').bind('mousewheel', function(e){
     }
 });  
 
+function calcPos(_pos){
+  if(zoom!=12)
+  {
+    var scale = 0.0084/(13-between);
+  }
+  else
+    var scale = 0.0084;
+
+  var pos = (((heightCanvas)-_pos)*(scale));
+  var price = pos+(currentPrice-((heightCanvas)*0.5)*(scale));
+  return price;
+}
+
 $('.chart').on("click", function(e){
-  var z = zoom;
-  z = !z?1:z;
-  var scale = 1+z;
-  var pos = heightCanvas - mouse.y;
-  var price = (currentPrice + (8 * (12) * 0.01));
-  //price *= scale;
-  var line = new Line(Position(0, price), Position(widthCnavas, price), 1, "#FFF", String(IntToFloat(price,2)));
+
+  var price = calcPos(mouse.y);
+  var line = new Line(Position(0, price), Position(widthCnavas, price), 1, "#FFF", String(price.toFixed(fixed)));
   lines.push(line);
-  console.log(price);
-  console.log(IntToFloat(price,2));
+
 });
 
 
@@ -368,10 +346,10 @@ function Message(data)
                     $("#volume").removeClass("volume--sale"); 
                   }
 
-                  var upprice = (parseFloat(currentPrice) + (8 * (between) * 0.01)).toFixed(2);
                   for(var i = 0; i < $(".prices span").length; i++)
                   {
-                    $(".prices span").eq(i).html(String((upprice - (i * (between) * 0.01)).toFixed(2)));
+                    var pos = $(".prices span").eq(i).position().top;
+                    $(".prices span").eq(i).html(String(calcPos(pos).toFixed(2)));
                   }
                   $("#price").html(String(currentPrice));
                   $("#nameGraph").html("["+String(data.name)+"]");
@@ -469,9 +447,23 @@ $("#pin").on("keypress", function(e){
   }
 });
 
-setInterval(function(){camera.Set(cameraX, cameraY); if(candles.length >= size && size) render(candles, camera, lines); console.log(zoom)},60);
-// function Render()
-// {       
-//   LayerGame.Fill('rgb(40,40,40)');
-//   Engine.Render(SceneGame);
-// };
+function Frame(){
+ camera.Set(cameraX, cameraY); 
+ if(candles.length >= size && size) 
+  render(candles, camera, lines);
+
+  requestAnimationFrame(Frame);
+}
+
+var requestAnimationFrame = (function()
+{
+    return window.requestAnimationFrame||
+            window.webkitRequestAnimationFrame||
+            window.mozRequestAnimationFrame||
+            window.oRequestAnimationFrame||
+            window.msRequestAnimationFrame||
+            function(callback)
+            { window.setTimeout(callback, 1000 / 60);}
+})();
+
+Frame();

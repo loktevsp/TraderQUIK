@@ -110,7 +110,7 @@ body{
 }
 #canvas{
 	position: absolute;
-	top: 0;
+	top: 1.5px;
 	left: 0;
 }
 .prices{
@@ -378,4 +378,10 @@ body{
 }
 .btn--sale{
 	background-color: #a00;
+}
+.select{
+
+}
+.selectItem{
+	
 }

@@ -96,6 +96,9 @@ reader.addEventListener("loadend", function() {
 
     switch(message["msgid"])
     {
+      case 20000:
+      			  console.log(message);
+    	          break;
       case 20004: 
       			  if(message["message"].search("успешно") > 0)
       			  {
