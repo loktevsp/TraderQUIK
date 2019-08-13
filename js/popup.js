@@ -64,10 +64,11 @@ Line.prototype =
         this.to = _to || this.to;
     }
 }
-Candle = function(_oc, _hl)
+Candle = function(_oc, _hl, _v)
 {
     this.open_close = _oc;
     this.high_low = _hl;
+    this.volume = _v;
 }
 Candle.prototype =
 {
@@ -90,7 +91,7 @@ ctx.font = "12px Arial";
 ctx.lineWidth = 1;      
 ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
 
-function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _dash = 0)
+function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _fscale = 10, _dash = 0, _flip = 1)
 {
   var _p = _data.pos;
   var _t = _data.to;
@@ -103,11 +104,13 @@ function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _dash = 
 
   var x1,x2,y1,y2,scale;
 
-  scale = _z*10;//1+_z/100;
+  scale = _z*_fscale;//1+_z/100;
   x1 = _p.x-_camera.x-_offest.x;
   x2 = _t.x-_camera.x-_offest.x;
   y1 = _p.y-_camera.y-_offest.y;
   y2 = _t.y-_camera.y-_offest.y;
+
+  ctx.setTransform(1,0,0,1,0,0);
 
   if(_label != "")
   {
@@ -135,7 +138,7 @@ function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _dash = 
   else
   {
     ctx.beginPath();
-    ctx.setTransform(1,0,0,-scale,0,_offest.y);
+    ctx.setTransform(1,0,0,-scale*_flip,0,_offest.y);
     ctx.setLineDash([0, 0]);
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
@@ -155,11 +158,12 @@ function render(_data, _camera, _data1 = 0)
   {
     drawLine(_data[i].high_low, _camera, Position(0, (heightCanvas)/2), zoom);
     drawLine(_data[i].open_close, _camera, Position(0, (heightCanvas)/2), zoom);
+    drawLine(_data[i].volume, Position(_camera.x, heightCanvas-3), Position(0, 0), 1, 1, 0, 1);
   }
 
   if(_data1)
     for(var i = 0; i < _data1.length; i++)
-      drawLine(_data1[i], Position(0, _camera.y), Position(0, (heightCanvas)/2), zoom, 5);
+      drawLine(_data1[i], Position(0, _camera.y), Position(0, (heightCanvas)/2), zoom, 10, 5);
 }
 
 var ColorSale = "#fa1039";
@@ -359,19 +363,22 @@ function Message(data)
 
                   if(data.size > 1)
                   {
-                    noloadgraph = false;
                     oldDate = data.price.date;
 
                     var o = IntToFloat(data.price.open, 2);
                     var c = IntToFloat(data.price.close, 2);
                     var h = IntToFloat(data.price.high, 2);
                     var l = IntToFloat(data.price.low, 2);
- 
+
                     var color = o>c?ColorSale:ColorBuy;
                     step+=10;
                     var oc = new Line(Position(step, c), Position(step, o), 7, color);
                     var hl = new Line(Position(step, h), Position(step, l), 1, color);
-                    candles.push(new Candle(oc, hl));
+                    if(data.price.volume > 10000)
+                      var v = new Line(Position(step, 0), Position(step, 5), 7, ColorSale);
+                    else
+                      var v = new Line(Position(step, 0), Position(step, 5), 7, ColorBuy);
+                    candles.push(new Candle(oc, hl, v));
                     cameraX = step-190;
                     cameraY = (c - heightCanvas/2);
                     camera.Set(cameraX, cameraY);
@@ -383,6 +390,7 @@ function Message(data)
                     var c = IntToFloat(data.price.close, 2);
                     var h = IntToFloat(data.price.high, 2);
                     var l = IntToFloat(data.price.low, 2);
+                   
 
                     var color = o>c?ColorSale:ColorBuy;
 
@@ -392,7 +400,13 @@ function Message(data)
                       step+=10;
                       var oc = new Line(Position(step, c), Position(step, o), 7, color);
                       var hl = new Line(Position(step, h), Position(step, l), 1, color);
-                      candles.push(new Candle(oc, hl));
+
+                      if(data.price.volume > 10000)
+                        var v = new Line(Position(step, 0), Position(step, 5), 7, ColorSale);
+                      else
+                        var v = new Line(Position(step, 0), Position(step, 5), 7, ColorBuy);
+
+                      candles.push(new Candle(oc, hl, v));
                       cameraX = step-190;
                       oldDate = data.price.date;
                     }
@@ -400,6 +414,11 @@ function Message(data)
                       var id = candles.length - 1;
                       candles[id].open_close.Set(Position(step, c), Position(step, o), 7, color);
                       candles[id].high_low.Set(Position(step, h), Position(step, l), 1, color);
+                      
+                      if(data.price.volume > 10000)
+                        candles[id].volume.Set(Position(step, 0), Position(step, 0), 7, ColorSale);
+                      else
+                        candles[id].volume.Set(Position(step, 0), Position(step, 0), 7, ColorBuy);
                     }
 
                     cameraY = (c - heightCanvas/2);
@@ -407,7 +426,7 @@ function Message(data)
                     
                   }
 
-                  if(candles.length >= size && size) render(candles, camera, lines);
+                  if(candles.length >= size && size) noloadgraph = false;
                   
                 }
                 break;

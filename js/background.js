@@ -162,12 +162,13 @@ reader.addEventListener("loadend", function() {
 						  var high = graph[i].h;
 						  var low = graph[i].l;
 						  var date = graph[i].d;
+						  var volume = graph[i].v;
 						  var s = parseInt(String(graph[i].c).slice(0, String(graph[i].c).length-2)+"00");
 
 						  if(close > open) state = "bull";
 						  else state = "bear";
 
-		      			  port.postMessage({msgid: 10004, name:name, scale:scale, size:size, price:{id:i, scale:s,sate:sate, open:open, close:close, high:high, low:low, date:date}, state: state, message: price, parrent:message["msgid"]});
+		      			  port.postMessage({msgid: 10004, name:name, scale:scale, size:size, price:{id:i, volume:volume, scale:s,sate:sate, open:open, close:close, high:high, low:low, date:date}, state: state, message: price, parrent:message["msgid"]});
 		              }
 		            
 
