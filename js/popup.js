@@ -400,11 +400,12 @@ function Message(data)
                       step+=10;
                       var oc = new Line(Position(step, c), Position(step, o), 7, color);
                       var hl = new Line(Position(step, h), Position(step, l), 1, color);
+                      var v = 0;
 
                       if(data.price.volume > 10000)
-                        var v = new Line(Position(step, 0), Position(step, 5), 7, ColorSale);
+                         v = new Line(Position(step, 0), Position(step, 5), 7, ColorSale);
                       else
-                        var v = new Line(Position(step, 0), Position(step, 5), 7, ColorBuy);
+                         v = new Line(Position(step, 0), Position(step, 5), 7, ColorBuy);
 
                       candles.push(new Candle(oc, hl, v));
                       cameraX = step-190;
@@ -414,11 +415,11 @@ function Message(data)
                       var id = candles.length - 1;
                       candles[id].open_close.Set(Position(step, c), Position(step, o), 7, color);
                       candles[id].high_low.Set(Position(step, h), Position(step, l), 1, color);
-                      
+
                       if(data.price.volume > 10000)
-                        candles[id].volume.Set(Position(step, 0), Position(step, 0), 7, ColorSale);
+                        candles[id].volume.Set(Position(step, 0), Position(step, 5), 7, ColorSale);
                       else
-                        candles[id].volume.Set(Position(step, 0), Position(step, 0), 7, ColorBuy);
+                        candles[id].volume.Set(Position(step, 0), Position(step, 5), 7, ColorBuy);
                     }
 
                     cameraY = (c - heightCanvas/2);
