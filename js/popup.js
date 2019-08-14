@@ -30,7 +30,25 @@ $(".chart").mousemove(function(e){
     mouse.x = e.pageX - pos.left; // положения по оси X
     mouse.y = e.pageY - pos.top; // положения по оси Y
     //console.log("X: " + mouse.x + " Y: " + mouse.y); // вывод результата в консоль
+    if(!noloadgraph)
+    {
+      $("#cursor-info").css("display", "block");
+      $("#cursor-info").offset({left:e.pageX+5, top:e.pageY-28});
+      $("#cursor-info").html(String(calcPos(mouse.y).toFixed(2)));
+    }
 });
+$(".chart").mouseout(function(e){
+  $("#cursor-info").css("display", "none");
+});
+$("#buy").on("click", function(e){
+  buy();
+});
+$("#sale").on("click", function(e){
+  sale();
+});
+
+var tmp = 0;
+
 Position = function(_x, _y)
 {
     return {
@@ -45,6 +63,7 @@ Position = function(_x, _y)
 }
 Line = function(_pos = Position(0, 0),_to = Position(0, 0),_size = 1,_color = "#fff", _label = "")
 {
+    this.id = tmp++;
     this.pos = _pos;
     this.to = _to;
     this.size = _size;
@@ -74,6 +93,16 @@ Candle.prototype =
 {
     constructor: Candle
 }
+Order = function(_id, _price = 0, _count = 0)
+{
+    this.id = _id;
+    this.price = _price;
+    this.count = _count;
+}
+Order.prototype =
+{
+    constructor: Order
+}
 
 var mouse = Position(0 , 0);
 var candles = [];
@@ -83,7 +112,9 @@ var camera = Position(0, 0);
 var widthCnavas = 200;
 var heightCanvas = 210;
 
-var canvas = document.getElementById("canvas"),
+$("#cursor-info").css("display", "none");
+
+var canvas = document.getElementById("canvas");
 ctx = canvas.getContext('2d');
 ctx.fillStyle = "#FFF";
 ctx.textBaseline = 'top';
@@ -91,7 +122,14 @@ ctx.font = "12px Arial";
 ctx.lineWidth = 1;      
 ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
 
-function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _fscale = 10, _dash = 0, _flip = 1)
+var canvas1 = document.getElementById("canvas1");
+ctx1 = canvas1.getContext('2d');
+ctx1.fillStyle = "#FFF";
+ctx1.textBaseline = 'top';
+ctx1.font = "12px Arial";
+ctx1.lineWidth = 1;      
+
+function drawLine(_ctx, _data, _camera, _offest = Position(0 ,0), _scale = 1, _fscale = 10, _dash = 0, _flip = 1)
 {
   var _p = _data.pos;
   var _t = _data.to;
@@ -110,42 +148,42 @@ function drawLine(_data, _camera, _offest = Position(0 ,0), _scale = 1, _fscale 
   y1 = _p.y-_camera.y-_offest.y;
   y2 = _t.y-_camera.y-_offest.y;
 
-  ctx.setTransform(1,0,0,1,0,0);
+  _ctx.setTransform(1,0,0,1,0,0);
 
   if(_label != "")
   {
-    ctx.beginPath();
-    ctx.setTransform(1,0,0,1,0,_offest.y-10);
-    ctx.fillStyle = "#FFF";
-    ctx.textBaseline = 'top';
-    ctx.font = "8px Arial";
-    ctx.lineWidth = 1;      
-    ctx.fillText(_label, x1, (y1*-scale)); 
-    ctx.closePath();
+    _ctx.beginPath();
+    _ctx.setTransform(1,0,0,1,0,_offest.y-10);
+    _ctx.fillStyle = "#FFF";
+    _ctx.textBaseline = 'top';
+    _ctx.font = "8px Arial";
+    _ctx.lineWidth = 1;      
+    _ctx.fillText(_label, x1, (y1*-scale)); 
+    _ctx.closePath();
   }
   if(_dash)
   {
-    ctx.beginPath();
-    ctx.setTransform(1,0,0,1,0,_offest.y);
-    ctx.setLineDash([5, _dash]);
-    ctx.moveTo(x1, (y1*-scale));
-    ctx.lineTo(x2, (y2*-scale));
-    ctx.lineWidth = _s;
-    ctx.strokeStyle = _c;
-    ctx.stroke();
-    ctx.closePath();
+    _ctx.beginPath();
+    _ctx.setTransform(1,0,0,1,0,_offest.y);
+    _ctx.setLineDash([5, _dash]);
+    _ctx.moveTo(x1, (y1*-scale));
+    _ctx.lineTo(x2, (y2*-scale));
+    _ctx.lineWidth = _s;
+    _ctx.strokeStyle = _c;
+    _ctx.stroke();
+    _ctx.closePath();
   }
   else
   {
-    ctx.beginPath();
-    ctx.setTransform(1,0,0,-scale*_flip,0,_offest.y);
-    ctx.setLineDash([0, 0]);
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.lineWidth = _s;
-    ctx.strokeStyle = _c;
-    ctx.stroke();
-    ctx.closePath();
+    _ctx.beginPath();
+    _ctx.setTransform(1,0,0,-scale*_flip,0,_offest.y);
+    _ctx.setLineDash([0, 0]);
+    _ctx.moveTo(x1, y1);
+    _ctx.lineTo(x2, y2);
+    _ctx.lineWidth = _s;
+    _ctx.strokeStyle = _c;
+    _ctx.stroke();
+    _ctx.closePath();
   }
 }
 
@@ -156,14 +194,24 @@ function render(_data, _camera, _data1 = 0)
 
   for(var i = 0; i < _data.length; i++)
   {
-    drawLine(_data[i].high_low, _camera, Position(0, (heightCanvas)/2), zoom);
-    drawLine(_data[i].open_close, _camera, Position(0, (heightCanvas)/2), zoom);
-    drawLine(_data[i].volume, Position(_camera.x, heightCanvas-3), Position(0, 0), 1, 1, 0, 1);
+    drawLine(ctx, _data[i].high_low, _camera, Position(0, (heightCanvas)/2), zoom);
+    drawLine(ctx, _data[i].open_close, _camera, Position(0, (heightCanvas)/2), zoom);
   }
 
   if(_data1)
     for(var i = 0; i < _data1.length; i++)
-      drawLine(_data1[i], Position(0, _camera.y), Position(0, (heightCanvas)/2), zoom, 10, 5);
+      drawLine(ctx, _data1[i], Position(0, _camera.y), Position(0, (heightCanvas)/2), zoom, 10, 5);
+}
+
+function render1(_data, _camera, _data1 = 0)
+{
+  ctx1.setTransform(1,0,0,1,0,0);
+  ctx1.clearRect(0, 0, widthCnavas, 10);
+
+  for(var i = 0; i < _data.length; i++)
+  {
+    drawLine(ctx1, _data[i].volume, Position(_camera.x, 10-3), Position(0, 0), 1, 1, 0, 1);
+  }
 }
 
 var ColorSale = "#fa1039";
@@ -286,6 +334,39 @@ $('.chart').on("click", function(e){
 
 });
 
+function findById(_id)
+{
+  for(var i = 0; i < lines.length; i++)
+    if(lines[i].id == _id) return i;
+}
+
+var orders = [];
+var sum = 10000;
+var innerSum = $("#sum");
+innerSum.html(sum.toFixed(2));
+
+function buy(){
+  if(sum > currentPrice*5)
+  {
+    var line = new Line(Position(0, currentPrice), Position(widthCnavas, currentPrice), 1, "#F00", String(currentPrice.toFixed(fixed)+", 5"));
+    lines.push(line);
+    orders.push(new Order(line.id, currentPrice, 5));
+    sum -= currentPrice*5;
+    innerSum.html(sum.toFixed(2));
+  }
+}
+function sale(){
+  if(orders.length > 0)
+  {
+      var order = orders.pop();
+      lines.splice(findById(order.id), 1);
+      var line = new Line(Position(0, currentPrice), Position(widthCnavas, currentPrice), 1, "#0F0", String(currentPrice.toFixed(fixed)));
+      lines.push(line);
+      sum += currentPrice*order.count;
+      innerSum.html(sum.toFixed(2));
+      setTimeout(function() {lines.splice(findById(line.id), 1)}, 5000);
+  }
+}
 
 function getScale(s)
 {
@@ -469,9 +550,11 @@ $("#pin").on("keypress", function(e){
 
 function Frame(){
  camera.Set(cameraX, cameraY); 
- if(candles.length >= size && size) 
-  render(candles, camera, lines);
-
+ if(!noloadgraph)
+  { 
+    render(candles, camera, lines);
+    render1(candles, camera, lines);
+  }
   requestAnimationFrame(Frame);
 }
 

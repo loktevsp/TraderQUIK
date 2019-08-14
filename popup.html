@@ -101,6 +101,9 @@
             <div id="nameGraph" class="tab">
                [Имя]
             </div>
+            <div id="sum" class="tab">
+               [Сумма]
+            </div>
             <div class="tab tab--center">
                [Цена]
             </div>
@@ -111,9 +114,11 @@
             <div class="contChart">
               <div id="chart" class="chart">
                 <canvas id="canvas" width="200" height="210">
-                  
                 </canvas>
               </div>
+              <div id="cursor-info" class="cursor-info">0.00</div>
+              <canvas id="canvas1" width="200" height="10"> 
+              </canvas>
               <div class="prices">
                 <span>0.0000</span>
                 <span>0.0000</span>
@@ -155,6 +160,13 @@
                   <span>0.0000</span>
                   <span>0.0000</span>
                 </div>
+              </div>
+            </div>
+
+            <div style="position: absolute; bottom: -5px; width: 100%;left: -10px;">
+              <div class="contBtn">
+                  <div id="buy" class="btn btn--buy">Купить</div>
+                  <div id="sale" class="btn btn--sale">Продать</div>
               </div>
             </div>
           </div>

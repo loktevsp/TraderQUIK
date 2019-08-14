@@ -113,6 +113,11 @@ body{
 	position: absolute;
 	top: 1.5px;
 	left: 0;
+	/*cursor: crosshair;*/
+}
+#canvas1{
+    position: absolute;
+    bottom: -23px;
 }
 .prices{
 	position: absolute;
@@ -375,14 +380,31 @@ body{
     border-color: #00b48e;
 }
 .btn--buy{
-	background-color: #0a0;
+	background-color: #00b48e;
+	border-color: #a8aab0;
+	color: #f8fff0;
 }
 .btn--sale{
-	background-color: #a00;
+	background-color: #fa1039;
+	border-color: #a8aab0;
+	color: #f8fff0;
 }
 .select{
 
 }
 .selectItem{
 	
+}
+.cursor-info{
+	position: absolute;
+    font-size: 10px;
+    z-index: 100;
+    background-color: #1c2128;
+    padding: 5px;
+    border-radius: 10px;
+}
+#sum{
+	position: absolute;
+    top: 2px;
+    left: 67px;
 }
