@@ -119,6 +119,13 @@ body{
     position: absolute;
     bottom: -23px;
 }
+#nameGraph{
+	width: 128px;
+    margin-left: 80px;
+}
+#hammerInp{
+	width: 85%;
+}
 .prices{
 	position: absolute;
 	width: 40px;
@@ -340,6 +347,9 @@ body{
 	align-items: center;
 	height: 39px;
 }
+.contInpLine--w{
+	width: 100%;
+}
 .lableInp{
 	color: #a8aab0;
 	width: 52px;
@@ -355,6 +365,12 @@ body{
     background-color: #21262d;
     color: #a8aab0;
     text-align: center;
+}
+.inp--w{
+	width: 100%;
+}
+#inGraph{
+	margin-left: -13px;
 }
 .contBtn{
 	display: flex;

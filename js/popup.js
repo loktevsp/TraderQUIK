@@ -9,6 +9,7 @@ $("#isTrader").on("click", function(e){
   $(this).addClass("active");
   $("#trader").removeClass("hidden");
   $("#terminal").addClass("hidden");
+  $("#briefcase").addClass("hidden");
   $("#hammer").addClass("hidden");
 });
 $("#isTerminal").on("click", function(e){
@@ -16,6 +17,7 @@ $("#isTerminal").on("click", function(e){
   $(this).addClass("active");
   $("#trader").addClass("hidden");
   $("#hammer").addClass("hidden");
+  $("#briefcase").addClass("hidden");
   $("#terminal").removeClass("hidden");
 });
 $("#isHammer").on("click", function(e){
@@ -23,6 +25,15 @@ $("#isHammer").on("click", function(e){
   $(this).addClass("active");
   $("#trader").addClass("hidden");
   $("#hammer").removeClass("hidden");
+  $("#briefcase").addClass("hidden");
+  $("#terminal").addClass("hidden");
+});
+$("#isBriefcase").on("click", function(e){
+  $(".itemP").removeClass("active");
+  $(this).addClass("active");
+  $("#trader").addClass("hidden");
+  $("#hammer").addClass("hidden");
+  $("#briefcase").removeClass("hidden");
   $("#terminal").addClass("hidden");
 });
 $(".chart").mousemove(function(e){

@@ -37,6 +37,7 @@ function send(e){
 var port = 0;
 var connect = false;
 var terminal = "";
+var classList = [];
 
 chrome.extension.onConnect.addListener(function(p) {
 	port = chrome.extension.connect({name: "background"});
@@ -90,6 +91,24 @@ function Message(data)
 	}
 }
 
+function FindSec(_class, _sec)
+{
+	var item = 0;
+	for(var i = 0; i < classList.length; i++)
+	{
+		if(classList[i].ccode == _class)
+		{
+			for(var j = 0; j < classList[i].secList.length; j++)
+				if(classList[i].secList[j].scode == _sec)
+				{
+					item = classList[i].secList[j];
+				}
+		}
+		
+	}
+	return item;
+}
+
 reader.addEventListener("loadend", function() {
 
     var message = JSON.parse(BinaryToText(new Uint8Array(reader.result)));
@@ -97,7 +116,7 @@ reader.addEventListener("loadend", function() {
     switch(message["msgid"])
     {
       case 20000:
-      			  console.log(message);
+      			  classList = message.classList;
     	          break;
       case 20004: 
       			  if(message["message"].search("успешно") > 0)
@@ -143,6 +162,11 @@ reader.addEventListener("loadend", function() {
 															    }
 															  }								  
 					  var name = message["graph"].getName();
+					  var arName = name.split('¦');
+					  var item = FindSec(arName[0],arName[1]);
+
+					  name = item.sname + " " + arName[2] + " мин.";
+
 					  var graph = message["graph"].getGraph();
 					  var size = graph.length;
 					  var scale = graph[graph.length-1].c;
@@ -168,7 +192,7 @@ reader.addEventListener("loadend", function() {
 						  if(close > open) state = "bull";
 						  else state = "bear";
 
-		      			  port.postMessage({msgid: 10004, name:name, scale:scale, size:size, price:{id:i, volume:volume, scale:s,sate:sate, open:open, close:close, high:high, low:low, date:date}, state: state, message: price, parrent:message["msgid"]});
+		      			  port.postMessage({msgid: 10004, name:name, lot:item.lot, scale:scale, size:size, price:{id:i, volume:volume, scale:s,sate:sate, open:open, close:close, high:high, low:low, date:date}, state: state, message: price, parrent:message["msgid"]});
 		              }
 		            
 
