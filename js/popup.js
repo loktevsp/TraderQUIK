@@ -58,6 +58,32 @@ $("#sale").on("click", function(e){
   sale();
 });
 
+$("#class_inp").on("click", function(e){
+  if($("#select_class_inp").css("display") == "none")
+      $("#select_class_inp").css("display", "flex");
+  else $("#select_class_inp").css("display", "none");
+});
+
+$("#graph_inp").on("click", function(e){
+  if($("#select_graph_inp").css("display") == "none")
+      $("#select_graph_inp").css("display", "flex");
+  else $("#select_graph_inp").css("display", "none");
+});
+$("#inGraph").on("click", function(e){
+  port.postMessage({msgid: 10002, class:$("#class_inp").attr("data-code"), sec:$("#graph_inp").attr("data-code")});
+  $("#isTrader").click();
+  noloadgraph = true;
+});
+
+function deleteItems(_items){
+  var size = _items.length;
+  for(var i = 0; i < size; i++)
+  {
+    delete  _items[i];
+    _items.pop();
+  }
+}
+
 var tmp = 0;
 
 Position = function(_x, _y)
@@ -130,7 +156,7 @@ ctx = canvas.getContext('2d');
 ctx.fillStyle = "#FFF";
 ctx.textBaseline = 'top';
 ctx.font = "12px Arial";
-ctx.lineWidth = 1;      
+ctx.lineWidth = 1;    
 ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
 
 var canvas1 = document.getElementById("canvas1");
@@ -228,6 +254,7 @@ function render1(_data, _camera, _data1 = 0)
 var ColorSale = "#fa1039";
 var ColorBuy = "#00b48e";
 
+var classList = [];
 var oldDate = "";
 var currentPrice = 0;
 var zoom = 12;
@@ -239,7 +266,6 @@ var size = 0;
 var cameraX = 0;
 var cameraY = 0;
 var port = chrome.runtime.connect({name: "popup"});
-port.postMessage({msgid: 1}); //Проверка авторизации
 
 chrome.runtime.onConnect.addListener(function(port) {
   console.assert(port.name == "background");
@@ -406,7 +432,10 @@ function Message(data)
                   $("#auth").addClass("hidden");
                   $(".controlP").removeClass("hidden");
                   $("#trader").removeClass("hidden");
-                  setInterval(function(){if(noloadgraph) port.postMessage({msgid: 10002});}, 3000);
+                  setTimeout(function(){
+                    port.postMessage({msgid: 10003}); //Загрузка классов
+                    port.postMessage({msgid: 10002, class:"TQBR", sec:"SBER"}); //Загрузка графика по умолчанию
+                  }, 3000);
                 }
                 break;
     case 10001: { //PIN
@@ -424,7 +453,7 @@ function Message(data)
                 }
                 break;
     case 10004: { //Текущая цена и график
-
+                  
                   currentPrice = data.message;
 
                   if(data.state == "bull") 
@@ -543,13 +572,50 @@ function Message(data)
                   }
                 }
                 break;
+    case 10006: { //classList
+                    classList = data.message;
+                    console.log(classList);
+
+                    for(var i = 0; i < classList.length; i++)
+                    {
+                      var div = $('<div>', { class: 'select_item'});
+                      div.attr("data-id", i);
+                      div.attr("data-code", classList[i].code);
+                      div.html(classList[i].name);
+                      div.on("click", function(e){
+                        $("#class_inp").val($(this).html());
+                        $("#class_inp").attr("data-code",  $(this).attr("data-code"));
+                        $("#select_class_inp").css("display", "none");
+                        $('#select_graph_inp').html("");
+                        var _class = classList[$(this).attr("data-id")];
+                        for(var j = 0; j < _class.sections.length; j++)
+                        {
+                          var div = $('<div>', { class: 'select_item'});
+                          div.attr("data-id", j);
+                          div.attr("data-code", _class.sections[j].code);
+                          div.html(_class.sections[j].name);
+                          div.on("click", function(e){
+                            $("#graph_inp").val($(this).html());
+                            $("#select_graph_inp").css("display", "none");
+                            $("#graph_inp").attr("data-code", $(this).attr("data-code"));
+                          });
+                          div.appendTo('#select_graph_inp');
+                        }
+                      });
+                      div.appendTo('#select_class_inp');
+                    }
+                }
+                break;
   }
 }
+
+port.postMessage({msgid: 1}); //Проверка авторизации
 
 $("#connect").on("click", function(e){
   var login = String($("#login").val());
   var passwd = String($("#passwd").val());
-  port.postMessage({msgid: 10000, login:login, password:passwd});
+  var nameServer = String($("#name_server").val());
+  port.postMessage({msgid: 10000, ns:nameServer, login:login, password:passwd});
 });
 
 $("#pin").on("keypress", function(e){
@@ -565,6 +631,16 @@ function Frame(){
   { 
     render(candles, camera, lines);
     render1(candles, camera, lines);
+  }
+  else
+  {
+    ctx.clearRect(0, 0, widthCnavas, heightCanvas);
+    ctx1.clearRect(0, 0, widthCnavas, 10);  
+    ctx.fillStyle = "#FFF";
+    ctx.textBaseline = 'top';
+    ctx.font = "12px Arial";
+    ctx.lineWidth = 1;  
+    ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
   }
   requestAnimationFrame(Frame);
 }

@@ -38,6 +38,10 @@ var port = 0;
 var connect = false;
 var terminal = "";
 var classList = [];
+var lastClass = "";
+var lastSec = "";
+var currentGraph = "";
+var currentQuotes = "";
 
 chrome.extension.onConnect.addListener(function(p) {
 	port = chrome.extension.connect({name: "background"});
@@ -64,7 +68,7 @@ function Message(data)
 					break;
 
 		case 10000: {
-						ws = new WebSocket("wss://webquik.sberbank.ru/quik", ["dumb-increment-protocol"]);
+						ws = new WebSocket("wss://"+data.ns+"/quik", ["dumb-increment-protocol"]);
 						ws.binaryType="blob";
 
 						ws.onopen = function(){
@@ -85,9 +89,36 @@ function Message(data)
 		case 10001: send('{"msgid":10001,"pin":"'+data.pin+'"}');
 					break;
 		case 10002: 
-					send('{"msgid":11016,"c":"TQBR","s":"GAZP","p":1}');
-					send('{"msgid":11014,"c":"TQBR","s":"GAZP","depth":30}');
+					//send('{"msgid":11020,"ccode":"'+data.class+'","scode":"'+data.sec+'"}');
+					//send('{"msgid":11116,"c":"'+lastClass+'","s":"'+lastSec+'","p":10}');
+					send('{"msgid":11016,"c":"'+data.class+'","s":"'+data.sec+'","p":1}');
+					send('{"msgid":11014,"c":"'+data.class+'","s":"'+data.sec+'","depth":30}');
+					currentGraph = "";
+					currentQuotes = "";
+					//send('{"msgid":11111,"securs":[{"ccode":"'+data.class+'","scode":"'+data.sec+'"}],"params":[{"quikname":"currencyid"}]}');
 					break;
+      	case 10003:
+					  var arList = [];
+					  for(var i = 0; i < classList.length; i++)
+					  {
+					  	var list = {};
+					  	list.name = classList[i].cname;
+					  	list.code = classList[i].ccode;
+					  	list.sections = [];
+
+					  	for(var j = 0; j < classList[i].secList.length; j++)
+					 	{
+					 		var section = {};
+					 		section.name = classList[i].secList[j].sname;
+					 		section.code = classList[i].secList[j].scode;
+					 		list.sections[j] = section;
+					 	}
+
+					  	arList[i] = list;
+					  }
+
+					  port.postMessage({msgid: 10006, message:arList});
+		          	break;
 	}
 }
 
@@ -117,6 +148,26 @@ reader.addEventListener("loadend", function() {
     {
       case 20000:
       			  classList = message.classList;
+      			  var arList = [];
+      			  for(var i = 0; i < classList.length; i++)
+      			  {
+      			  	var list = {};
+      			  	list.name = classList[i].cname;
+      			  	list.code = classList[i].ccode;
+      			  	list.sections = [];
+
+      			  	for(var j = 0; j < classList[i].secList.length; j++)
+      			 	{
+      			 		var section = {};
+      			 		section.name = classList[i].secList[j].sname;
+      			 		section.code = classList[i].secList[j].scode;
+      			 		list.sections[j] = section;
+      			 	}
+
+      			  	arList[i] = list;
+      			  }
+
+      			  port.postMessage({msgid: 10006, message:arList});
     	          break;
       case 20004: 
       			  if(message["message"].search("успешно") > 0)
@@ -125,7 +176,7 @@ reader.addEventListener("loadend", function() {
       			  	port.postMessage({msgid: 10002, message: "<success>"+message["message"]+"</success>", parrent:message["msgid"]});
       			  	port.postMessage({msgid: 10000});
       			  }
-      			  else //if(message["message"].search("PIN") > 0)
+      			  else
       			  {
       			  	port.postMessage({msgid: 10001, message: "<error>"+message["message"]+"</error>", parrent:message["msgid"]});
       			  }
@@ -145,10 +196,19 @@ reader.addEventListener("loadend", function() {
 															        break;
 															    }
 														 	}
+				  message["quotes"].getName = function () {
+															    for (var i in this) {
+															        return i;
+															        break;
+															    }
+															  }	
+				  currentQuotes = currentQuotes==""?message["quotes"].getName():currentQuotes;
+				  if(currentQuotes != message["quotes"].getName()) break;
+
 				  var lines = message["quotes"].getLines();	
 				  port.postMessage({msgid: 10005, message: lines, parrent:message["msgid"]});									 	
       			  break;
-      case 21016: 
+      case 21016:
 	      			  message["graph"].getGraph = function () {
 															    for (var i in this) {
 															        return this[i];
@@ -160,7 +220,11 @@ reader.addEventListener("loadend", function() {
 															        return i;
 															        break;
 															    }
-															  }								  
+															  }	
+
+					  currentGraph = currentGraph==""?message["graph"].getName():currentGraph;
+					  if(currentGraph != message["graph"].getName()) break;	
+
 					  var name = message["graph"].getName();
 					  var arName = name.split('¦');
 					  var item = FindSec(arName[0],arName[1]);
@@ -170,12 +234,6 @@ reader.addEventListener("loadend", function() {
 					  var graph = message["graph"].getGraph();
 					  var size = graph.length;
 					  var scale = graph[graph.length-1].c;
-
-					   // for(var i = 0; i < size; i++)
-					   // 	if(scale < graph[i].c) scale = graph[i].c;
-
-					  //scale = parseInt(String(scale).slice(0, String(scale).length-2)+"00");
-					  
 
 					  for(var i = 0; i < size; i++)
 					  {
@@ -194,8 +252,6 @@ reader.addEventListener("loadend", function() {
 
 		      			  port.postMessage({msgid: 10004, name:name, lot:item.lot, scale:scale, size:size, price:{id:i, volume:volume, scale:s,sate:sate, open:open, close:close, high:high, low:low, date:date}, state: state, message: price, parrent:message["msgid"]});
 		              }
-		            
-
 	              break;
 	    default:
 	    	console.log(message);
@@ -203,4 +259,4 @@ reader.addEventListener("loadend", function() {
     }
 });
 
-setInterval(function(){if(connect) ws.send('{"msgid":10008}');}, 3000);
+setInterval(function(){if(connect) ws.send('{"msgid":10008}');}, 5000);

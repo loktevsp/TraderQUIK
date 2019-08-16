@@ -68,6 +68,10 @@
         </div>
         <div id="authInp" class="contInp">
             <div class="contInpLine">
+              <div for="name_server" class="lableInp">Сервер:</div>
+              <input id="name_server" class="inp" value="webquik.sberbank.ru"/>
+            </div>
+            <div class="contInpLine">
               <div for="login" class="lableInp">Логин:</div>
               <input id="login" class="inp" value="4XMB6"/>
             </div>
@@ -93,11 +97,17 @@
         <div id="hammerInp" class="contInp">
             <div class="contInpLine contInpLine--w">
               <div for="class_inp" class="lableInp">Класс:</div>
-              <input id="class_inp" class="inp inp--w" value="TQBR"/>
+              <input type="button" id="class_inp" class="inp inp--w" value=""/>
+            </div>
+            <div id="select_class_inp" class="select">
+                <div class="select_item"></div>
             </div>
             <div class="contInpLine contInpLine--w">
               <div for="graph_inp" class="lableInp">График:</div>
-              <input id="graph_inp" class="inp inp--w" value="GAZP"/>
+              <input type="button" id="graph_inp" class="inp inp--w" value=""/>
+            </div>
+            <div id="select_graph_inp" class="select">
+                <div class="select_item"></div>
             </div>
             <div class="contBtn contBtn--margin">
               <div id="inGraph" class="btn">К графику</div>
