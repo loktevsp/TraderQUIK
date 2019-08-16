@@ -70,9 +70,13 @@ $("#graph_inp").on("click", function(e){
   else $("#select_graph_inp").css("display", "none");
 });
 $("#inGraph").on("click", function(e){
+  noloadgraph = true;
+ 
+  deleteItems(candles);
+  deleteItems(lines);
+
   port.postMessage({msgid: 10002, class:$("#class_inp").attr("data-code"), sec:$("#graph_inp").attr("data-code")});
   $("#isTrader").click();
-  noloadgraph = true;
 });
 
 function deleteItems(_items){
@@ -153,18 +157,18 @@ $("#cursor-info").css("display", "none");
 
 var canvas = document.getElementById("canvas");
 ctx = canvas.getContext('2d');
-ctx.fillStyle = "#FFF";
-ctx.textBaseline = 'top';
-ctx.font = "12px Arial";
-ctx.lineWidth = 1;    
-ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
+// ctx.fillStyle = "#FFF";
+// ctx.textBaseline = 'top';
+// ctx.font = "12px Arial";
+// ctx.lineWidth = 1;    
+// ctx.fillText("Загрузка...",widthCnavas/2, heightCanvas/2);
 
 var canvas1 = document.getElementById("canvas1");
 ctx1 = canvas1.getContext('2d');
-ctx1.fillStyle = "#FFF";
-ctx1.textBaseline = 'top';
-ctx1.font = "12px Arial";
-ctx1.lineWidth = 1;      
+// ctx1.fillStyle = "#FFF";
+// ctx1.textBaseline = 'top';
+// ctx1.font = "12px Arial";
+// ctx1.lineWidth = 1;      
 
 function drawLine(_ctx, _data, _camera, _offest = Position(0 ,0), _scale = 1, _fscale = 10, _dash = 0, _flip = 1)
 {
@@ -438,6 +442,15 @@ function Message(data)
                   }, 3000);
                 }
                 break;
+    case 11000: { //Авторизован
+                  $("#auth").addClass("hidden");
+                  $(".controlP").removeClass("hidden");
+                  $("#trader").removeClass("hidden");
+                  setTimeout(function(){
+                    port.postMessage({msgid: 10003}); //Загрузка классов
+                  }, 3000);
+                }
+                break;
     case 10001: { //PIN
                   $("#authInp").addClass("hidden");
                   $("#pinInp").removeClass("hidden");
@@ -626,16 +639,19 @@ $("#pin").on("keypress", function(e){
 });
 
 function Frame(){
- camera.Set(cameraX, cameraY); 
+  
  if(!noloadgraph)
   { 
+    camera.Set(cameraX, cameraY);
     render(candles, camera, lines);
     render1(candles, camera, lines);
   }
   else
-  {
+  { 
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx1.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0, 0, widthCnavas, heightCanvas);
-    ctx1.clearRect(0, 0, widthCnavas, 10);  
+    ctx1.clearRect(0, 0, widthCnavas, 10);
     ctx.fillStyle = "#FFF";
     ctx.textBaseline = 'top';
     ctx.font = "12px Arial";

@@ -38,10 +38,9 @@ var port = 0;
 var connect = false;
 var terminal = "";
 var classList = [];
-var lastClass = "";
-var lastSec = "";
-var currentGraph = "";
-var currentQuotes = "";
+var currentClass = "";
+var currentSec = "";
+
 
 chrome.extension.onConnect.addListener(function(p) {
 	port = chrome.extension.connect({name: "background"});
@@ -55,6 +54,32 @@ chrome.extension.onConnect.addListener(function(p) {
 	}
 });
 
+var requestListener = function(details){
+
+	var flag = false,
+		rule = {
+			name: "Origin",
+			value: "https://junior.webquik.ru"
+		};
+		console.log(details.requestHeaders);
+	// for (var i = 0; i < details.requestHeaders.length; ++i) {
+	// 	if (details.requestHeaders[i].name == rule.name) {
+	// 		console.log(true);
+	// 		flag = true;
+	// 		details.requestHeaders[i].value = rule.value;
+	// 		break;
+	// 	}
+	// }
+	// if(!flag) details.requestHeaders.push(rule);
+	return {requestHeaders: details.requestHeaders};
+};
+//chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
+chrome.webRequest.onBeforeSendHeaders.addListener(requestListener,{
+			urls: [
+				"wss://*/*"
+			]
+		},["requestHeaders"]);
+
 function Message(data)
 {
 	switch(data.msgid)
@@ -62,14 +87,18 @@ function Message(data)
 		case 1: 	
 					if(auth)
 					{
-						port.postMessage({msgid: 10000});
+						port = chrome.extension.connect({name: "background"});
+						port.postMessage({msgid: 11000});
 						port.postMessage({msgid: 10003, message: terminal, parrent:1});
+						send('{"msgid":11016,"c":"'+currentClass+'","s":"'+currentSec+'","p":1}');
+						send('{"msgid":11014,"c":"'+currentClass+'","s":"'+currentSec+'","depth":30}');
 					}
 					break;
 
 		case 10000: {
 						ws = new WebSocket("wss://"+data.ns+"/quik", ["dumb-increment-protocol"]);
 						ws.binaryType="blob";
+						//ws.setRequestHeader("Origin","//");
 
 						ws.onopen = function(){
 							var login = data.login;
@@ -93,8 +122,8 @@ function Message(data)
 					//send('{"msgid":11116,"c":"'+lastClass+'","s":"'+lastSec+'","p":10}');
 					send('{"msgid":11016,"c":"'+data.class+'","s":"'+data.sec+'","p":1}');
 					send('{"msgid":11014,"c":"'+data.class+'","s":"'+data.sec+'","depth":30}');
-					currentGraph = "";
-					currentQuotes = "";
+					currentClass = String(data.class);
+					currentSec = String(data.sec);
 					//send('{"msgid":11111,"securs":[{"ccode":"'+data.class+'","scode":"'+data.sec+'"}],"params":[{"quikname":"currencyid"}]}');
 					break;
       	case 10003:
@@ -202,11 +231,18 @@ reader.addEventListener("loadend", function() {
 															        break;
 															    }
 															  }	
-				  currentQuotes = currentQuotes==""?message["quotes"].getName():currentQuotes;
-				  if(currentQuotes != message["quotes"].getName()) break;
+				  var name = message["quotes"].getName();
+				  var arName = name.split('¦');
+				  if(currentSec != arName[1]) break;
 
 				  var lines = message["quotes"].getLines();	
-				  port.postMessage({msgid: 10005, message: lines, parrent:message["msgid"]});									 	
+
+				  try{
+				  	port.postMessage({msgid: 10005, message: lines, parrent:message["msgid"]});
+				  }  									 	
+      			  catch(e){ port = chrome.extension.connect({name: "background"}); 
+      						port.postMessage({msgid: 10005, message: lines, parrent:message["msgid"]});}
+
       			  break;
       case 21016:
 	      			  message["graph"].getGraph = function () {
@@ -222,11 +258,11 @@ reader.addEventListener("loadend", function() {
 															    }
 															  }	
 
-					  currentGraph = currentGraph==""?message["graph"].getName():currentGraph;
-					  if(currentGraph != message["graph"].getName()) break;	
-
 					  var name = message["graph"].getName();
 					  var arName = name.split('¦');
+
+					  if(currentSec != arName[1]) break;
+
 					  var item = FindSec(arName[0],arName[1]);
 
 					  name = item.sname + " " + arName[2] + " мин.";
