@@ -1,0 +1,59 @@
+wss://sberbank.webquik.ru:443/quik
+
+//Запрос покупка
+{"msgid":12000,"isMarket":1,"isMarketSpread":0,"spread":0,"price":"0","takeProfit":0,"offset":0,"isStop":0,"ccode":"TQBR","scode":"SBER","account":"L01-00000F00","clientCode":"13222","sell":0,"quantity":1}
+
+//Ответ
+{"msgid":22000,"resultCode":0}
+{"msgid":21009,"status":6,"ordernum":0,"datetime":"2019-08-22 09:52:51","text":"Рыночная заявка для клиентского счета запрещена"}
+
+
+//Запрос покупка
+{"msgid":12000,"isMarket":0,"isMarketSpread":0,"spread":0,"price":218.62,"takeProfit":0,"offset":0,"isStop":0,"ccode":"TQBR","scode":"SBER","account":"L01-00000F00","clientCode":"13222","sell":0,"quantity":1}
+
+//Ответ
+{"msgid":22000,"resultCode":0}
+{"msgid":21009,"status":3,"ordernum":3678103,"datetime":"2019-08-22 09:56:35","text":"(165) Заявка на покупку N 3678103 зарегистрирована (предторговый период)."}
+//Денежные лимиты
+{"msgid":21004,"mid":3224,"valut":"SUR","tag":"EQTV","cbal":99992.62,"clim":0,"obal":99992.62,"olim":0,"block":2190.03,"ucode":"13222","status":1,"firmid":"DEMO","limit_kind":2,"qty_scale":2}
+//Бумажные лимиты
+{"msgid":21005,"did":92978,"trdacc":"L01-00000F00","scode":"SBER","cbal":0,"clim":0,"obal":0,"olim":0,"block":0,"ucode":"13222","status":1,"avg":0,"firmid":"DEMO","limit_kind":2}
+//Заявки
+{"msgid":21001,"qdate":20190822,"qtime":95635,"ccode":"TQBR","scode":"SBER","sell":0,"account":"L01-00000F00","price":21862,"qty":1,"volume":218620,"balance":1,"yield":0,"accr":0,"refer":"13222/","type":25,"firm":"DEMO","ucode":"13222","number":"3678103","status":1,"price_currency":"SUR ","settle_currency":"SUR "}
+//Заявки
+{"msgid":21001,"qdate":20190822,"qtime":95635,"ccode":"TQBR","scode":"SBER","sell":0,"account":"L01-00000F00","price":21862,"qty":1,"volume":218620,"balance":1,"yield":0,"accr":0,"refer":"13222/","type":25,"firm":"DEMO","ucode":"13222","number":"3678103","status":1,"price_currency":"SUR ","settle_currency":"SUR "}
+//Портфель
+{"msgid":21013,"client_type":4,"InAssets":99992.62,"Leverage":-1,"OpenLimit":0,"ValShort":0,"ValLong":0,"ValLongMargin":0,"ValLongAsset":0,"PortfolioValue":99992.62,"Margin":100,"LimAll":-99966.93,"AvLimAll":-99966.93,"LockedBuy":0,"LockedBuyMargin":0,"LockedBuyAsset":0,"LockedSell":0,"LockedValueCoef":25.692,"InAllAssets":99992.62,"AllAssets":99992.62,"ProfitLoss":0,"LimBuy":0,"LimSell":0,"LimNonMargin":99966.93,"LimBuyAsset":0,"CurLeverage":0,"FuturesTrdAccId":"","GoFoPositions":0,"GoForOrders":0,"RateFutures100":100,"VarMargin":0,"MarginMin":0,"MarginStart":0,"MarginCorrected":25.69,"StatusCoef":0,"IsDisplayMDParams":1,"IsQualifiedClient":0,"TotalMoneyBal":99992.62,"Assets":99992.62,"UDS":9.99,"MarginalStatus":1,"firmid":"DEMO","limit_kind":2,"ucode":"13222","qty_scale":2,"failed":0}
+
+
+//Запрос на продажу
+{"msgid":12000,"isMarket":0,"isMarketSpread":0,"spread":0,"price":218.72,"takeProfit":0,"offset":0,"isStop":0,"ccode":"TQBR","scode":"SBER","account":"L01-00000F00","clientCode":"13222","sell":1,"quantity":1}
+
+
+//Ответ
+{"msgid":22000,"resultCode":0}
+
+{"msgid":21009,"status":3,"ordernum":5098767,"datetime":"2019-08-22 10:21:08","text":"(163) Заявка на продажу N 5098767 зарегистрирована (1 удовлетворено)."}
+
+//Бумажные лимиты
+{"msgid":21005,"did":92978,"trdacc":"L01-00000F00","scode":"SBER","cbal":10,"clim":0,"obal":0,"olim":0,"block":10,"ucode":"13222","status":1,"avg":218.62,"firmid":"DEMO","limit_kind":2}
+
+//Сделки
+{"msgid":21003,"number":27440,"ccode":"TQBR","scode":"SBER","qdate":20190822,"qtime":102108,"n_order":5098767,"sell":1,"account":"L01-00000F00","price":21912,"qty":1,"volume":219120,"ucode":"13222","code":"Y2","yield":0,"accr":0,"refer":"13222/","firm":"DEMO","price_currency":"SUR","settle_currency":"SUR"}
+
+//Заявки
+{"msgid":21001,"qdate":20190822,"qtime":102108,"ccode":"TQBR","scode":"SBER","sell":1,"account":"L01-00000F00","price":21872,"qty":1,"volume":218720,"balance":0,"yield":0,"accr":0,"refer":"13222/","type":28,"firm":"DEMO","ucode":"13222","number":"5098767","status":2,"price_currency":"SUR ","settle_currency":"SUR "}
+
+//Денежные лимиты
+{"msgid":21004,"mid":3224,"valut":"SUR","tag":"EQTV","cbal":99989.97,"clim":0,"obal":99992.62,"olim":0,"block":0,"ucode":"13222","status":1,"firmid":"DEMO","limit_kind":2,"qty_scale":2}
+
+//Портфель
+{"msgid":21013,"client_type":4,"InAssets":99992.62,"Leverage":-1,"OpenLimit":0,"ValShort":0,"ValLong":0,"ValLongMargin":0,"ValLongAsset":0,"PortfolioValue":99989.97,"Margin":100,"LimAll":-99989.97,"AvLimAll":-99989.97,"LockedBuy":0,"LockedBuyMargin":0,"LockedBuyAsset":0,"LockedSell":0,"LockedValueCoef":0,"InAllAssets":99992.62,"AllAssets":99989.97,"ProfitLoss":-2.65,"LimBuy":0,"LimSell":0,"LimNonMargin":99989.97,"LimBuyAsset":0,"CurLeverage":0,"FuturesTrdAccId":"","GoFoPositions":0,"GoForOrders":0,"RateFutures100":100,"VarMargin":0,"MarginMin":0,"MarginStart":0,"MarginCorrected":0,"StatusCoef":0,"IsDisplayMDParams":1,"IsQualifiedClient":0,"TotalMoneyBal":99989.97,"Assets":99989.97,"UDS":9.99,"MarginalStatus":8,"firmid":"DEMO","limit_kind":2,"ucode":"13222","qty_scale":2,"failed":0}
+
+
+//Заявка на снятие
+{"msgid":12100,"ccode":"TQBR","number":7498957}
+
+{"msgid":21009,"status":3,"ordernum":0,"datetime":"2019-08-22 16:45:01","text":"(210) Снято заявок: 1. Снято количество: 2. Нельзя снимать: 0."}
+
+{"msgid":21001,"qdate":20190822,"qtime":164438,"ccode":"TQBR","scode":"SBER","sell":1,"account":"L01-00000F00","price":22424,"qty":2,"volume":448480,"balance":2,"yield":0,"accr":0,"refer":"13222/","type":29,"firm":"DEMO","ucode":"13222","number":"7498957","status":1,"price_currency":"SUR ","settle_currency":"SUR "}
